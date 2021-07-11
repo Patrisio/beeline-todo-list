@@ -1,0 +1,7 @@
+.textareaContainer {
+  width: 100%;
+}
+
+.textareaContainerError {
+  border: 1px solid red;
+}
