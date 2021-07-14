@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -9,9 +9,10 @@ import Select from '../../components/Select/Select';
 import Input from '../../components/Input/Input';
 import Textarea from '../../components/Textarea/Textarea';
 import DatePicker from '../../components/DatePicker/DatePicker';
+import TasksList from '../../components/TasksList/TasksList';
 
 import { priorities } from '../../lib/utils/priority';
-import { addTask } from '../../database/api';
+import { addTask, getTasks } from '../../database/api';
 import { TaskData } from '../../types';
 import styles from './TodoList.module.css';
 
@@ -42,14 +43,14 @@ export default function TodoList() {
       hasError: false,
       value: 'usual',
     },
-    dateCompleted: {
+    deadline: {
       hasError: false,
       value: '',
     },
   };
 
   const [newTaskData, updateNewTaskData] = useState<NewTask>(defaultNewTask);
-  const [tasks, updateTasks] = useState<TaskData[]>([]);
+  const [tasks, updateTasks] = useState<{[key: string]: string}[]>([]);
   const [isOpenModal, setOpenModal] = useState<boolean>(false);
   const [hasDeadline, toggleDeadline] = useState<boolean>(true);
   const [isLoading, toggleLoading] = useState<boolean>(false);
@@ -68,7 +69,7 @@ export default function TodoList() {
 
   const updateNewTask = (e: React.ChangeEvent<{ value: unknown }>, taskField: string) => {
     const taskFieldValue = e.target.value as string;
-    console.log(taskFieldValue);
+
     updateNewTaskData(prev => ({
       ...prev,
       [taskField]: {
@@ -78,19 +79,20 @@ export default function TodoList() {
     }));
   };
 
-  const afterTaskAddedSuccessfullyCallback = () => {
+  const afterTaskAddedSuccessfullyCallback = (newTask: TaskData) => {
     resetNewTaskData();
     closeModal();
+    // updateTasks(prev => [...prev, newTask]);
     toggleLoading(prev => !prev);
   };
 
   const handleDeadline = () => {
     toggleDeadline(prev => {
-      if (prev && newTaskData.dateCompleted) {
+      if (prev && newTaskData.deadline) {
         updateNewTaskData(prev => ({
           ...prev,
-          dateCompleted: {
-            ...prev.dateCompleted,
+          deadline: {
+            ...prev.deadline,
             value: '',
           }
         }));
@@ -108,11 +110,11 @@ export default function TodoList() {
       const isEmptyTaskFieldValue = !value.trim().length;
 
       if (isEmptyTaskFieldValue) {
-        if (taskFieldName === 'dateCompleted' && !hasDeadline) {
+        if (taskFieldName === 'deadline' && !hasDeadline) {
           updateNewTaskData(prev => ({
             ...prev,
-            dateCompleted: {
-              ...prev.dateCompleted,
+            deadline: {
+              ...prev.deadline,
               hasError: false,
             }
           }));
@@ -182,6 +184,12 @@ export default function TodoList() {
     </>
   )
 
+  useEffect(() => {
+    getTasks((tasks: any) => {
+      updateTasks(tasks);
+    });
+  }, []);
+
   return (
     <div>
       <Button
@@ -189,6 +197,10 @@ export default function TodoList() {
       >
         Создать задачу
       </Button>
+
+      <TasksList
+        tasks={tasks}      
+      />
 
       <Dialog
         isOpenDialog={isOpenModal}
@@ -238,9 +250,9 @@ export default function TodoList() {
               />
               <DatePicker
                 label='Дата и время выполнения задачи'
-                onChange={(e: React.ChangeEvent<{ value: unknown }>) => updateNewTask(e, 'dateCompleted')}
+                onChange={(e: React.ChangeEvent<{ value: unknown }>) => updateNewTask(e, 'deadline')}
                 disabled={!hasDeadline}
-                error={newTaskData.dateCompleted.hasError}
+                error={newTaskData.deadline.hasError}
               />
             </div>
           </div>

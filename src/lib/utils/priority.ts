@@ -17,3 +17,7 @@ export const priorities: Priority[] = [
     value: 'blocking',
   },
 ];
+
+export function getPriority(priorityValue: string) {
+  return priorities.find((priority) => priority.value === priorityValue)?.name;
+}
