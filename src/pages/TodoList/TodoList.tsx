@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -12,7 +12,7 @@ import DatePicker from '../../components/DatePicker/DatePicker';
 import TasksList from '../../components/TasksList/TasksList';
 
 import { priorities } from '../../lib/utils/priority';
-import { addTask, getTasks } from '../../database/api';
+import { addTask, removeTask, getTasks, updateTask } from '../../database/api';
 import { TaskData } from '../../types';
 import styles from './TodoList.module.css';
 
@@ -27,6 +27,12 @@ interface FormField {
 
 interface NewTask {
   [key: string]: FormField
+}
+
+interface ModalData {
+  title: string,
+  actionTitle: string,
+  action: (data: any, hasDeadline: boolean) => void,
 }
 
 export default function TodoList() {
@@ -49,17 +55,39 @@ export default function TodoList() {
     },
   };
 
+  const defaultModalData: ModalData = {
+    title: 'Добавление задачи',
+    actionTitle: 'Добавить задачу',
+    action: (newTaskData, hasDeadline) => makeTask(newTaskData, hasDeadline),
+  };
+
   const [newTaskData, updateNewTaskData] = useState<NewTask>(defaultNewTask);
   const [tasks, updateTasks] = useState<{[key: string]: string}[]>([]);
   const [isOpenModal, setOpenModal] = useState<boolean>(false);
   const [hasDeadline, toggleDeadline] = useState<boolean>(true);
+  const [modalData, setModalData] = useState<ModalData>(defaultModalData);
   const [isLoading, toggleLoading] = useState<boolean>(false);
 
-  const openModal = () => {
+  function makeTask(newTaskData: NewTask, hasDeadline: boolean) {
+    toggleLoading(prev => !prev);
+    const hasErrors = validateForm(newTaskData, hasDeadline);
+
+    if (hasErrors) {
+      toggleLoading(prev => !prev);
+      return;
+    }
+
+    const taskData = extractTaskData(newTaskData);
+    addTask(taskData, afterTaskAddedSuccessfullyCallback);
+  };
+
+  const openModal = (modalData: ModalData) => {
+    setModalData(modalData);
     setOpenModal(true);
   };
 
   const closeModal = () => {
+    resetNewTaskData();
     setOpenModal(false);
   };
 
@@ -69,7 +97,6 @@ export default function TodoList() {
 
   const updateNewTask = (e: React.ChangeEvent<{ value: unknown }>, taskField: string) => {
     const taskFieldValue = e.target.value as string;
-
     updateNewTaskData(prev => ({
       ...prev,
       [taskField]: {
@@ -82,7 +109,6 @@ export default function TodoList() {
   const afterTaskAddedSuccessfullyCallback = (newTask: TaskData) => {
     resetNewTaskData();
     closeModal();
-    // updateTasks(prev => [...prev, newTask]);
     toggleLoading(prev => !prev);
   };
 
@@ -102,7 +128,7 @@ export default function TodoList() {
     });
   };
 
-  const validateForm = () => {
+  const validateForm = (newTaskData: NewTask, hasDeadline: boolean) => {
     let hasErrors = false;
 
     for (let taskFieldName in newTaskData) {
@@ -121,13 +147,14 @@ export default function TodoList() {
           continue;
         }
 
-        updateNewTaskData(prev => ({
+        updateNewTaskData(prev => {
+          return {
           ...prev,
           [taskFieldName]: {
             ...prev[taskFieldName],
             hasError: true,
           }
-        }));
+        }});
 
         hasErrors = true;
         continue;
@@ -155,15 +182,46 @@ export default function TodoList() {
     return formattedTaskData;
   }; 
 
-  const makeTask = () => {
-    toggleLoading(prev => !prev);
-    const hasErrors = validateForm();
-    if (hasErrors) {
-      toggleLoading(prev => !prev);
-      return;
+  const deleteTask = useCallback((id: string) => {
+    removeTask(id);
+  }, [tasks]);
+
+  const editTask = useCallback((id: string) => {
+    const taskData = tasks.find(task => task.id === id);
+
+    if (taskData) {
+      const { name, description, priority, deadline } = taskData;
+
+      updateNewTaskData({
+        name: {
+          hasError: false,
+          value: name,
+        },
+        description: {
+          hasError: false,
+          value: description,
+        },
+        priority: {
+          hasError: false,
+          value: priority,
+        },
+        deadline: {
+          hasError: false,
+          value: deadline,
+        },
+      });
+      toggleDeadline(!!deadline);
+      openModal({
+        title: 'Редактировать задачу',
+        actionTitle: 'Изменить',
+        action: (newTaskData: NewTask) => updateTask(id, extractTaskData(newTaskData), () => closeModal()),
+      });
     }
-    const taskData = extractTaskData(newTaskData);
-    addTask(taskData, afterTaskAddedSuccessfullyCallback);
+  }, [tasks]);
+
+  const taskActions = {
+    deleteTask,
+    editTask,
   };
 
   const DialogActions = () => (
@@ -176,10 +234,12 @@ export default function TodoList() {
       </Button>
 
       <Button
-        onClick={makeTask}
+        onClick={() => {
+          modalData.action(newTaskData, hasDeadline);
+        }}
         color='primary'
       >
-        Создать задачу
+        { modalData.actionTitle }
       </Button>
     </>
   )
@@ -193,20 +253,21 @@ export default function TodoList() {
   return (
     <div>
       <Button
-        onClick={openModal}
+        onClick={() => openModal(defaultModalData)}
       >
         Создать задачу
       </Button>
 
       <TasksList
-        tasks={tasks}      
+        tasks={tasks}
+        { ...taskActions }      
       />
 
       <Dialog
         isOpenDialog={isOpenModal}
         isLoading={isLoading}
         onClose={closeModal}
-        title='Добавление задачи'
+        title={modalData.title}
         actions={<DialogActions />}
       >
         <div className={styles.modalContent}>
@@ -216,6 +277,7 @@ export default function TodoList() {
               onChange={(e: React.ChangeEvent<{ value: unknown }>) => updateNewTask(e, 'name')}
               fullWidth
               error={newTaskData.name.hasError}
+              value={newTaskData.name.value}
             />
           </div>
 
@@ -224,6 +286,7 @@ export default function TodoList() {
               placeholder='Введите описание задачи'
               onChange={(e: React.ChangeEvent<{ value: unknown }>) => updateNewTask(e, 'description')}
               error={newTaskData.description.hasError}
+              value={newTaskData.description.value}
             />
           </div>
 
@@ -232,7 +295,7 @@ export default function TodoList() {
               <Select
                 onChange={(e: React.ChangeEvent<{ value: unknown }>) => updateNewTask(e, 'priority')}
                 options={priorities}
-                defaultValue='usual'
+                defaultValue={newTaskData.priority.value}
               />
             </div>
 
@@ -253,6 +316,7 @@ export default function TodoList() {
                 onChange={(e: React.ChangeEvent<{ value: unknown }>) => updateNewTask(e, 'deadline')}
                 disabled={!hasDeadline}
                 error={newTaskData.deadline.hasError}
+                defaultValue={newTaskData.deadline.value}
               />
             </div>
           </div>

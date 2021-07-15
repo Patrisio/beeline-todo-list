@@ -12,9 +12,10 @@ interface TaskCardProps {
   deadline: string,
   priority: string,
   deleteTask: (id: string) => void,
+  editTask: (id: string) => void,
 }
 
-export default function TaskCard({ id, name, deadline, priority, deleteTask }: TaskCardProps) {
+export default function TaskCard({ id, name, deadline, priority, deleteTask, editTask }: TaskCardProps) {
   const getDeadline = (dateString: string) => {
     const [date, time] = dateString.split('T');
     return `${date} ${time}`;
@@ -22,6 +23,10 @@ export default function TaskCard({ id, name, deadline, priority, deleteTask }: T
 
   const onDeleteTask = () => {
     deleteTask(id);
+  };
+
+  const onEditTask = () => {
+    editTask(id);
   };
 
   return (
@@ -41,6 +46,13 @@ export default function TaskCard({ id, name, deadline, priority, deleteTask }: T
         onClick={onDeleteTask}
       >
         Удалить
+      </Button>
+      <Button
+        variant='contained'
+        color='primary'
+        onClick={onEditTask}
+      >
+        Редактировать
       </Button>
     </div>
   );

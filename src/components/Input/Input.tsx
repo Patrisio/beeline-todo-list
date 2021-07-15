@@ -7,6 +7,7 @@ interface InputProps {
   placeholder?: string,
   fullWidth?: boolean,
   error?: boolean,
+  value: string,
 }
 
 export default function Input(props: InputProps) {

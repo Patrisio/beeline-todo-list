@@ -8,6 +8,7 @@ interface TextareaProps {
   placeholder?: string,
   onChange: (e: React.ChangeEvent<{ value: unknown }>) => void,
   error?: boolean,
+  value: string,
 }
 
 export default function Textarea({ error, ...restProps }: TextareaProps) {

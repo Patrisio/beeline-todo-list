@@ -34,3 +34,16 @@ export function getTasks(successCallback: (tasks: any) => void): void {
     successCallback(tasks);
   });
 }
+
+export function updateTask(id: string, taskData: TaskData, successCallback: () => void) {
+  console.log(taskData, 'taskData');
+  const todoRef = firebase.database().ref('Todo').child(id);
+  todoRef.update(taskData)
+    .then(() => {
+      console.log('SUCCESS');
+      successCallback();
+    })
+    .catch((err: any) => {
+      console.log('ERROR: ', err);
+    });
+}

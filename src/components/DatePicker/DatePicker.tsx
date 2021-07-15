@@ -6,6 +6,7 @@ interface DatePickerProps {
   onChange: (e: React.ChangeEvent<{ value: unknown }>) => void,
   disabled?: boolean,
   error?: boolean,
+  defaultValue: string,
 }
 
 export default function DatePicker(props: DatePickerProps) {

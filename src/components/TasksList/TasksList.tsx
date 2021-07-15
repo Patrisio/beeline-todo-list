@@ -1,20 +1,17 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo } from 'react';
 
 import TaskCard from '../TaskCard/TaskCard';
 
-import { removeTask } from '../../database/api';
 import { TaskData } from '../../types';
 import styles from './TasksList.module.css';
 
 interface TaskListProps {
   tasks: TaskData[],
+  deleteTask: (id: string) => void,
+  editTask: (id: string) => void,
 }
 
-function TasksList({ tasks }: TaskListProps) {
-  const deleteTask = useCallback((id: string) => {
-    removeTask(id);
-  }, [tasks]);
-
+function TasksList({ tasks, ...taskActions }: TaskListProps) {
   return (
     <div className={styles.tasksListContainer}>
       {
@@ -26,7 +23,7 @@ function TasksList({ tasks }: TaskListProps) {
               name={name}
               priority={priority}
               deadline={deadline}
-              deleteTask={deleteTask}
+              { ...taskActions }
             />
           );
         })
