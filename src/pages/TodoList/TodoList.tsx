@@ -58,6 +58,10 @@ export default function TodoList() {
       hasError: false,
       value: 'inProgress',
     },
+    dateCompletion: {
+      hasError: false,
+      value: '',
+    },
   };
 
   const defaultModalData: ModalData = {
@@ -92,7 +96,7 @@ export default function TodoList() {
       toggleLoading(prev => !prev);
       return;
     }
-
+    console.log(newTaskData, 'NEW__');
     const taskData = extractTaskData(newTaskData);
     addTask(taskData, afterTaskAddedSuccessfullyCallback);
   };
@@ -156,6 +160,8 @@ export default function TodoList() {
           }));
           continue;
         }
+
+        if (taskFieldName === 'dateCompletion') continue; 
 
         updateNewTaskData(prev => {
           return {

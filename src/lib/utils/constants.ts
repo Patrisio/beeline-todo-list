@@ -61,3 +61,12 @@ export function formatTasks(todos: any) {
 
   return formattedTasks;
 }
+
+export function getDateTime(): string {
+  return new Date().toJSON().substring(0,16);
+}
+
+export function getFormattedDateTime(dateString: string): string {
+  const [date, time] = dateString.split('T');
+  return `${date} ${time}`;
+};
