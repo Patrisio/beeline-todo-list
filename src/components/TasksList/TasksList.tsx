@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, Dispatch, SetStateAction } from 'react';
 
 import TaskCard from '../TaskCard/TaskCard';
 
@@ -9,6 +9,7 @@ interface TaskListProps {
   tasks: TaskData[],
   deleteTask: (id: string) => void,
   editTask: (id: string) => void,
+  updateTasks: Dispatch<SetStateAction<{ [key: string]: string; }[]>>,
 }
 
 function TasksList({ tasks, ...taskActions }: TaskListProps) {

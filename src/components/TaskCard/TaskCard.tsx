@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Dispatch, SetStateAction } from 'react';
 
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
@@ -6,7 +6,7 @@ import Select from '../../components/Select/Select';
 
 import { TaskData } from '../../types';
 import { getPriority, statuses } from '../../lib/utils/constants';
-import { updateTask } from '../../database/api';
+import { updateTaskById } from '../../database/api';
 
 
 interface TaskCardProps {
@@ -17,9 +17,10 @@ interface TaskCardProps {
   status: string,
   deleteTask: (id: string) => void,
   editTask: (id: string) => void,
+  updateTasks: Dispatch<SetStateAction<{ [key: string]: string; }[]>>,
 }
 
-export default function TaskCard({ id, name, deadline, priority, status, deleteTask, editTask }: TaskCardProps) {
+export default function TaskCard({ id, name, deadline, priority, status, deleteTask, editTask, updateTasks }: TaskCardProps) {
   const getDeadline = (dateString: string) => {
     const [date, time] = dateString.split('T');
     return `${date} ${time}`;
@@ -35,8 +36,15 @@ export default function TaskCard({ id, name, deadline, priority, status, deleteT
 
   const updateTaskStatus = (e: React.ChangeEvent<{ value: unknown }>) => {
     const value = e.target.value as string;
-    const successCallback = () => {};
-    updateTask(id, { name, deadline, priority, status: value }, successCallback);
+    const successCallback = () => updateTasks(prev => {
+      const foundTask = prev.find(task => task.id === id);
+      const foundTaskIndex = prev.findIndex(task => task.id === id);
+
+      prev.splice(foundTaskIndex, 1, { ...foundTask, status: value });
+      
+      return [...prev];
+    });
+    updateTaskById(id, { name, deadline, priority, status: value }, successCallback);
   };
 
   return (

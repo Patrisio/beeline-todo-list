@@ -10,9 +10,10 @@ import Input from '../../components/Input/Input';
 import Textarea from '../../components/Textarea/Textarea';
 import DatePicker from '../../components/DatePicker/DatePicker';
 import TasksList from '../../components/TasksList/TasksList';
+import RadioButtonGroup from '../../components/RadioButtonGroup/RadioButtonGroup';
 
-import { priorities } from '../../lib/utils/constants';
-import { addTask, removeTask, getTasks, updateTask } from '../../database/api';
+import { priorities, filters } from '../../lib/utils/constants';
+import { addTask, removeTask, getTasks, updateTaskById, getTasksByFilter } from '../../database/api';
 import { TaskData } from '../../types';
 import styles from './TodoList.module.css';
 
@@ -71,8 +72,19 @@ export default function TodoList() {
   const [hasDeadline, toggleDeadline] = useState<boolean>(true);
   const [modalData, setModalData] = useState<ModalData>(defaultModalData);
   const [isLoading, toggleLoading] = useState<boolean>(false);
+  const [selectedFilter, setSelectedFilter] = useState<string>('all');
 
   function makeTask(newTaskData: NewTask, hasDeadline: boolean) {
+    const afterTaskAddedSuccessfullyCallback = (taskId: string, newTaskData: TaskData) => {
+      resetNewTaskData();
+      closeModal();
+      updateTasks(prev => {
+        return selectedFilter === newTaskData.priority || selectedFilter === 'all' ?
+          [...prev, { id: taskId, ...newTaskData }] : prev;
+      });
+      toggleLoading(prev => !prev);
+    };
+
     toggleLoading(prev => !prev);
     const hasErrors = validateForm(newTaskData, hasDeadline);
 
@@ -108,12 +120,6 @@ export default function TodoList() {
         value: taskFieldValue
       },
     }));
-  };
-
-  const afterTaskAddedSuccessfullyCallback = (newTask: TaskData) => {
-    resetNewTaskData();
-    closeModal();
-    toggleLoading(prev => !prev);
   };
 
   const handleDeadline = () => {
@@ -184,10 +190,19 @@ export default function TodoList() {
     }
 
     return formattedTaskData;
-  }; 
+  };
 
-  const deleteTask = useCallback((id: string) => {
-    removeTask(id);
+  const getTaskBySelectedFilter = (selectedFilterValue: string) => {
+    setSelectedFilter(selectedFilterValue);
+
+    selectedFilterValue === 'all' ? 
+    getTasks((tasks: any) => updateTasks(tasks)) :
+    getTasksByFilter(selectedFilterValue, (tasks) => updateTasks(tasks));
+  };
+
+  const deleteTask = useCallback((taskId: string) => {
+    updateTasks(prev => prev.filter(task => task.id !== taskId));
+    removeTask(taskId);
   }, [tasks]);
 
   const editTask = useCallback((id: string) => {
@@ -195,6 +210,14 @@ export default function TodoList() {
 
     if (taskData) {
       const { name, description, priority, deadline } = taskData;
+      const afterTaskEditedSuccessfullyCallback = (newTaskData: TaskData) => {
+        updateTasks(prev => {
+          const foundTaskIndex = tasks.findIndex(task => task.id === id);
+          prev.splice(foundTaskIndex, 1, { id, ...newTaskData });
+          return [...prev];
+        });
+        closeModal();
+      };
 
       updateNewTaskData({
         name: {
@@ -218,7 +241,7 @@ export default function TodoList() {
       openModal({
         title: 'Редактировать задачу',
         actionTitle: 'Изменить',
-        action: (newTaskData: NewTask) => updateTask(id, extractTaskData(newTaskData), () => closeModal()),
+        action: (newTaskData: NewTask) => updateTaskById(id, extractTaskData(newTaskData), afterTaskEditedSuccessfullyCallback),
       });
     }
   }, [tasks]);
@@ -226,6 +249,7 @@ export default function TodoList() {
   const taskActions = {
     deleteTask,
     editTask,
+    updateTasks,
   };
 
   const DialogActions = () => (
@@ -256,6 +280,11 @@ export default function TodoList() {
 
   return (
     <div>
+      <RadioButtonGroup
+        items={filters}
+        onChange={getTaskBySelectedFilter}
+      />
+
       <Button
         onClick={() => openModal(defaultModalData)}
       >

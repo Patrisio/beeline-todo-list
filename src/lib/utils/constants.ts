@@ -3,6 +3,25 @@ export interface Priority {
   value: 'usual' | 'important' | 'blocking'
 }
 
+export const filters = [
+  {
+    value: 'all',
+    label: 'Все',
+  },
+  {
+    value: 'usual',
+    label: 'Обычные',
+  },
+  {
+    value: 'important',
+    label: 'Важные',
+  },
+  {
+    value: 'blocking',
+    label: 'Очень важные',
+  },
+];
+
 export const priorities: Priority[] = [
   {
     name: 'Обычная',
@@ -31,4 +50,14 @@ export const statuses = [
 
 export function getPriority(priorityValue: string) {
   return priorities.find((priority) => priority.value === priorityValue)?.name;
+}
+
+export function formatTasks(todos: any) {
+  const formattedTasks: {[key: string]: string}[] = [];
+
+  for (let id in todos) {
+    formattedTasks.push({ id, ...todos[id] });
+  }
+
+  return formattedTasks;
 }
