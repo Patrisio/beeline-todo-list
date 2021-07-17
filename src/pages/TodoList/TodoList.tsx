@@ -11,7 +11,7 @@ import Textarea from '../../components/Textarea/Textarea';
 import DatePicker from '../../components/DatePicker/DatePicker';
 import TasksList from '../../components/TasksList/TasksList';
 
-import { priorities } from '../../lib/utils/priority';
+import { priorities } from '../../lib/utils/constants';
 import { addTask, removeTask, getTasks, updateTask } from '../../database/api';
 import { TaskData } from '../../types';
 import styles from './TodoList.module.css';
@@ -52,6 +52,10 @@ export default function TodoList() {
     deadline: {
       hasError: false,
       value: '',
+    },
+    status: {
+      hasError: false,
+      value: 'inProgress',
     },
   };
 
@@ -294,6 +298,7 @@ export default function TodoList() {
             <div className={styles.taskField}>
               <Select
                 onChange={(e: React.ChangeEvent<{ value: unknown }>) => updateNewTask(e, 'priority')}
+                label='Приоритет'
                 options={priorities}
                 defaultValue={newTaskData.priority.value}
               />

@@ -15,7 +15,7 @@ function TasksList({ tasks, ...taskActions }: TaskListProps) {
   return (
     <div className={styles.tasksListContainer}>
       {
-        tasks.map(({ id, name, priority, deadline }: TaskData, idx: number) => {
+        tasks.map(({ id, name, priority, deadline, status }: TaskData, idx: number) => {
           return (
             <TaskCard
               key={idx}
@@ -23,6 +23,7 @@ function TasksList({ tasks, ...taskActions }: TaskListProps) {
               name={name}
               priority={priority}
               deadline={deadline}
+              status={status}
               { ...taskActions }
             />
           );

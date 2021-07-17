@@ -18,6 +18,17 @@ export const priorities: Priority[] = [
   },
 ];
 
+export const statuses = [
+  {
+    name: 'В работе',
+    value: 'inProgress',
+  },
+  {
+    name: 'Выполнена',
+    value: 'done',
+  },
+];
+
 export function getPriority(priorityValue: string) {
   return priorities.find((priority) => priority.value === priorityValue)?.name;
 }

@@ -15,15 +15,17 @@ interface Option {
 interface SelectProps {
   onChange: (e: React.ChangeEvent<{ value: unknown }>) => void,
   options: Option[],
-  defaultValue: string,
+  label: string
+  defaultValue?: string,
+  value?: string,
 }
 
-export default function Select({ options, ...restProps }: SelectProps) {
+export default function Select({ options, label, ...restProps }: SelectProps) {
   const selectOptions = options.map(({ value, name }) => <MenuItem key={value} value={value}>{ name }</MenuItem>);
 
   return (
     <FormControl className={styles.formControl}>
-      <InputLabel id="demo-simple-select-label">Приоритет</InputLabel>
+      <InputLabel id="demo-simple-select-label">{ label }</InputLabel>
       <MaterialSelect
         { ...restProps }
       >
