@@ -5,8 +5,9 @@ import Button from '@material-ui/core/Button';
 import Select from '../../components/Select/Select';
 
 import { TaskData } from '../../types';
-import { getPriority, statuses, getDateTime, getFormattedDateTime } from '../../lib/utils/constants';
+import { getPriority, statuses, getDateTime, getFormattedDateTime, isDeadlineBroken } from '../../lib/utils/constants';
 import { updateTaskById } from '../../database/api';
+import styles from './TaskCard.module.css';
 
 
 interface TaskCardProps {
@@ -48,7 +49,7 @@ export default function TaskCard({ id, name, deadline, priority, status, dateCom
   };
 
   return (
-    <div>
+    <div className={deadline && isDeadlineBroken(deadline, Date.now()) ? styles.taskCardContainerError : styles.taskCardContainer}>
       <Typography variant='h5'>
         { name }
       </Typography>

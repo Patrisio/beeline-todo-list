@@ -70,3 +70,15 @@ export function getFormattedDateTime(dateString: string): string {
   const [date, time] = dateString.split('T');
   return `${date} ${time}`;
 };
+
+function convertDateToTimestamp(date: string) {
+  return Date.parse(date);
+}
+
+export function isDeadlineBroken(deadline: string, now: number) {
+  const deadlineTimestamp = convertDateToTimestamp(deadline);
+  console.log(deadlineTimestamp, 'deadlineTimestamp');
+  console.log(now, 'NOW');
+  console.log(now > deadlineTimestamp, 'RESULT');
+  return now > deadlineTimestamp;
+}

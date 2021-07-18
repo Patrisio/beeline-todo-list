@@ -215,7 +215,7 @@ export default function TodoList() {
     const taskData = tasks.find(task => task.id === id);
 
     if (taskData) {
-      const { name, description, priority, deadline } = taskData;
+      const { name, description, priority, deadline, status, dateCompletion } = taskData;
       const afterTaskEditedSuccessfullyCallback = (newTaskData: TaskData) => {
         updateTasks(prev => {
           const foundTaskIndex = tasks.findIndex(task => task.id === id);
@@ -241,6 +241,14 @@ export default function TodoList() {
         deadline: {
           hasError: false,
           value: deadline,
+        },
+        status: {
+          hasError: false,
+          value: status,
+        },
+        dateCompletion: {
+          hasError: false,
+          value: dateCompletion,
         },
       });
       toggleDeadline(!!deadline);
@@ -335,7 +343,7 @@ export default function TodoList() {
                 onChange={(e: React.ChangeEvent<{ value: unknown }>) => updateNewTask(e, 'priority')}
                 label='Приоритет'
                 options={priorities}
-                defaultValue={newTaskData.priority.value}
+                value={newTaskData.priority.value}
               />
             </div>
 
@@ -356,7 +364,7 @@ export default function TodoList() {
                 onChange={(e: React.ChangeEvent<{ value: unknown }>) => updateNewTask(e, 'deadline')}
                 disabled={!hasDeadline}
                 error={newTaskData.deadline.hasError}
-                defaultValue={newTaskData.deadline.value}
+                value={newTaskData.deadline.value}
               />
             </div>
           </div>

@@ -16,7 +16,6 @@ interface SelectProps {
   onChange: (e: React.ChangeEvent<{ value: unknown }>) => void,
   options: Option[],
   label: string
-  defaultValue?: string,
   value?: string,
 }
 
