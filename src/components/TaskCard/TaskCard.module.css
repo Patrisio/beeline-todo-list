@@ -1,7 +1,3 @@
 .taskCardContainerError {
-  background: red !important;
-}
-
-.taskCardContainer {
-  background: yellow;
+  background: rgba(255,0,0,.1) !important;
 }

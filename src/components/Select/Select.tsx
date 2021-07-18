@@ -5,7 +5,7 @@ import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 
-import styles from './Select.module.css';
+import { useStyles } from './styles';
 
 interface Option {
   name: string,
@@ -20,10 +20,11 @@ interface SelectProps {
 }
 
 export default function Select({ options, label, ...restProps }: SelectProps) {
+  const classes = useStyles();
   const selectOptions = options.map(({ value, name }) => <MenuItem key={value} value={value}>{ name }</MenuItem>);
 
   return (
-    <FormControl className={styles.formControl}>
+    <FormControl className={classes.formControl}>
       <InputLabel id="demo-simple-select-label">{ label }</InputLabel>
       <MaterialSelect
         { ...restProps }

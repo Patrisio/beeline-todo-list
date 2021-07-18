@@ -2,7 +2,7 @@ import React from 'react';
 
 import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 
-import styles from './Textarea.module.css';
+import { useStyles } from './styles';
 
 interface TextareaProps {
   placeholder?: string,
@@ -12,10 +12,12 @@ interface TextareaProps {
 }
 
 export default function Textarea({ error, ...restProps }: TextareaProps) {
+  const classes = useStyles();
+
   return (
     <div className={`
-      ${styles.textareaContainer}
-      ${error && styles.textareaContainerError}
+      ${classes.textareaContainer}
+      ${error && classes.textareaContainerError}
     `}>
       <TextareaAutosize
         aria-label='task description'

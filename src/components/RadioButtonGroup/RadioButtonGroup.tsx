@@ -5,6 +5,7 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 
 import styles from './RadioButtonGroup.module.css';
+import { useStyles } from './styles';
 
 interface Option {
   value: string,
@@ -17,6 +18,7 @@ interface RadioButtonGroupProps {
 }
 
 export default function RadioButtonGroup({ items, onChange }: RadioButtonGroupProps) {
+  const classes = useStyles();
   const [selectedRadioButtonValue, setValue] = React.useState<string>('all');
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,6 +28,12 @@ export default function RadioButtonGroup({ items, onChange }: RadioButtonGroupPr
     onChange(selectedRadioButtonValue);
   };
 
+  const commonStyles = {
+    padding: '5px 20px',
+    border: '2px solid #3f51b5',
+    borderRadius: '100px',
+  };
+
   const useDefaultStyles = makeStyles({
     label: {
       '&:hover': {
@@ -33,12 +41,16 @@ export default function RadioButtonGroup({ items, onChange }: RadioButtonGroupPr
       },
       backgroundColor: 'transparent',
       transition: '.3s all',
+      color: '#3f51b5',
+      ...commonStyles,
     },
   })
 
   const useActiveStyles = makeStyles({
     label: {
-      backgroundColor: '#3f51b5;',
+      backgroundColor: '#3f51b5',
+      color: '#fff',
+      ...commonStyles,
     },
   })
 
@@ -51,19 +63,21 @@ export default function RadioButtonGroup({ items, onChange }: RadioButtonGroupPr
       value={selectedRadioButtonValue}
       onChange={handleChange}
     >
-      {
-        items.map(({ value, label }) => {
-          return (
-            <FormControlLabel
-              classes={selectedRadioButtonValue === value ? formControlLabelActiveClasses : formControlLabelDefaultClasses}
-              key={value}
-              value={value}
-              control={<Radio icon='' checkedIcon='' />}
-              label={label}
-            />
-          );
-        })
-      }
+      <div className={classes.filtersContent}>
+        {
+          items.map(({ value, label }) => {
+            return (
+              <FormControlLabel
+                classes={selectedRadioButtonValue === value ? formControlLabelActiveClasses : formControlLabelDefaultClasses}
+                key={value}
+                value={value}
+                control={<Radio icon='' checkedIcon='' />}
+                label={label}
+              />
+            );
+          })
+        }
+      </div>
     </RadioGroup>
   );
 }

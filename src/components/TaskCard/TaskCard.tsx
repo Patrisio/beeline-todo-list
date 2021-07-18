@@ -3,9 +3,12 @@ import React, { Dispatch, SetStateAction } from 'react';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import Select from '../../components/Select/Select';
+import DeleteIcon from '@material-ui/icons/Delete';
+import EditIcon from '@material-ui/icons/Edit';
 
 import { TaskData } from '../../types';
-import { getPriority, statuses, getDateTime, getFormattedDateTime, isDeadlineBroken } from '../../lib/utils/constants';
+import { useStyles } from './styles';
+import { getPriority, statuses, getDateTime, getFormattedDateTime, checkDeadlineBroken } from '../../lib/utils/constants';
 import { updateTaskById } from '../../database/api';
 import styles from './TaskCard.module.css';
 
@@ -13,6 +16,7 @@ import styles from './TaskCard.module.css';
 interface TaskCardProps {
   id: string,
   name: string,
+  description: string,
   deadline: string,
   priority: string,
   status: string,
@@ -22,7 +26,9 @@ interface TaskCardProps {
   updateTasks: Dispatch<SetStateAction<{ [key: string]: string; }[]>>,
 }
 
-export default function TaskCard({ id, name, deadline, priority, status, dateCompletion, deleteTask, editTask, updateTasks }: TaskCardProps) {
+export default function TaskCard({ id, name, description, deadline, priority, status, dateCompletion, deleteTask, editTask, updateTasks }: TaskCardProps) {
+  const classes = useStyles();
+
   const onDeleteTask = () => {
     deleteTask(id);
   };
@@ -48,43 +54,69 @@ export default function TaskCard({ id, name, deadline, priority, status, dateCom
     updateTaskById(id, { name, deadline, priority, status: selectedStatus, dateCompletion: getDateCompletion(selectedStatus) }, successCallback);
   };
 
+  const isDeadlineBroken = deadline && checkDeadlineBroken(deadline, Date.now());
+
   return (
-    <div className={deadline && isDeadlineBroken(deadline, Date.now()) ? styles.taskCardContainerError : styles.taskCardContainer}>
+    <div
+      className={`
+        ${isDeadlineBroken ? styles.taskCardContainerError : styles.taskCardContainer}
+        ${classes.taskCard}
+      `}
+    >
       <Typography variant='h5'>
         { name }
       </Typography>
-      <Typography variant='subtitle2'>
-        {`Дедлайн: ${deadline ? getFormattedDateTime(deadline) : 'не установлен'}`}
+      <Typography variant="body2" gutterBottom>
+        { description }
       </Typography>
-      <Typography variant='subtitle2'>
-        {`Приоритет: ${getPriority(priority)}`}
-      </Typography>
-      {
-        dateCompletion &&
-        <Typography variant='subtitle2'>
-          {`Завершена: ${getFormattedDateTime(dateCompletion)}`}
-        </Typography>
-      }
-      <Select
-        onChange={updateTaskStatus}
-        label='Статус'
-        options={statuses}
-        value={status}
-      />
-      <Button
-        variant='contained'
-        color='primary'
-        onClick={onDeleteTask}
-      >
-        Удалить
-      </Button>
-      <Button
-        variant='contained'
-        color='primary'
-        onClick={onEditTask}
-      >
-        Редактировать
-      </Button>
+
+      <div className={classes.taskDetails}>
+        <div>
+          <Typography variant='subtitle2'>
+            {`Дедлайн: ${deadline ? getFormattedDateTime(deadline) : 'не установлен'}`}
+          </Typography>
+          <Typography variant='subtitle2'>
+            {`Приоритет: ${getPriority(priority)}`}
+          </Typography>
+          {
+            isDeadlineBroken &&
+            <span className={classes.deadlineTitle}>
+              {`ПРОСРОЧЕНА`}
+            </span>
+          }
+          {
+            dateCompletion &&
+            <Typography variant='subtitle2'>
+              {`Завершена: ${getFormattedDateTime(dateCompletion)}`}
+            </Typography>
+          }
+        </div>
+        <Select
+          onChange={updateTaskStatus}
+          label='Статус'
+          options={statuses}
+          value={status}
+        />
+      </div>
+
+      <div>
+        <Button
+          variant='contained'
+          onClick={onDeleteTask}
+          startIcon={<DeleteIcon />}
+          className={classes.deleteButton}
+        >
+          Удалить
+        </Button>
+        <Button
+          variant='contained'
+          color='primary'
+          onClick={onEditTask}
+          startIcon={<EditIcon />}
+        >
+          Редактировать
+        </Button>
+      </div>
     </div>
   );
 }

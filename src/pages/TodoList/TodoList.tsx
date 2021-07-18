@@ -13,9 +13,9 @@ import TasksList from '../../components/TasksList/TasksList';
 import RadioButtonGroup from '../../components/RadioButtonGroup/RadioButtonGroup';
 
 import { priorities, filters } from '../../lib/utils/constants';
+import { useStyles } from './styles';
 import { addTask, removeTask, getTasks, updateTaskById, getTasksByFilter } from '../../database/api';
 import { TaskData } from '../../types';
-import styles from './TodoList.module.css';
 
 interface FormattedTask {
   [key: string]: string,
@@ -37,6 +37,7 @@ interface ModalData {
 }
 
 export default function TodoList() {
+  const classes = useStyles();
   const defaultNewTask = {
     name: {
       hasError: false,
@@ -284,7 +285,7 @@ export default function TodoList() {
         { modalData.actionTitle }
       </Button>
     </>
-  )
+  );
 
   useEffect(() => {
     getTasks((tasks: any) => {
@@ -298,12 +299,14 @@ export default function TodoList() {
         items={filters}
         onChange={getTaskBySelectedFilter}
       />
-
-      <Button
-        onClick={() => openModal(defaultModalData)}
-      >
-        Создать задачу
-      </Button>
+      <div className={classes.makeTaskButtonContainer}>
+        <Button
+          onClick={() => openModal(defaultModalData)}
+          className={classes.button}
+        >
+          Создать задачу
+        </Button>
+      </div>
 
       <TasksList
         tasks={tasks}
@@ -317,8 +320,8 @@ export default function TodoList() {
         title={modalData.title}
         actions={<DialogActions />}
       >
-        <div className={styles.modalContent}>
-          <div className={styles.taskField}>
+        <div className={classes.modalContent}>
+          <div className={classes.taskField}>
             <Input
               placeholder='Введите название задачи'
               onChange={(e: React.ChangeEvent<{ value: unknown }>) => updateNewTask(e, 'name')}
@@ -328,7 +331,7 @@ export default function TodoList() {
             />
           </div>
 
-          <div className={styles.taskField}>
+          <div className={classes.taskField}>
             <Textarea
               placeholder='Введите описание задачи'
               onChange={(e: React.ChangeEvent<{ value: unknown }>) => updateNewTask(e, 'description')}
@@ -337,8 +340,8 @@ export default function TodoList() {
             />
           </div>
 
-          <div className={styles.priorityAndDate}>
-            <div className={styles.taskField}>
+          <div className={classes.priorityAndDate}>
+            <div className={classes.taskField}>
               <Select
                 onChange={(e: React.ChangeEvent<{ value: unknown }>) => updateNewTask(e, 'priority')}
                 label='Приоритет'
