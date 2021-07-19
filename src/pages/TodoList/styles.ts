@@ -2,6 +2,10 @@ import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 
 export const useStyles = makeStyles((theme: Theme) =>
   createStyles({
+    todoListTitle: {
+      textAlign: 'center',
+      padding: '20px',
+    },
     button: {
       border: '2px solid #3f51b5',
       width: '542px',
