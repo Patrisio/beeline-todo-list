@@ -6,27 +6,31 @@ import Select from '../../components/Select/Select';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 
-import { TaskData } from '../../types';
+import { TaskData, Statuses, Priorities } from '../../types';
 import { useStyles } from './styles';
-import { getPriority, statuses, getDateTime, getFormattedDateTime, checkDeadlineBroken } from '../../lib/utils/constants';
+import { statuses } from '../../lib/constants';
+import { getPriority, getDateTime, getFormattedDateTime, checkDeadlineBroken } from '../../lib/utils';
 import { updateTaskById } from '../../database/api';
-import styles from './TaskCard.module.css';
-
 
 interface TaskCardProps {
   id: string,
   name: string,
   description: string,
   deadline: string,
-  priority: string,
-  status: string,
+  priority: Priorities,
+  status: Statuses,
   dateCompletion: string,
   deleteTask: (id: string) => void,
   editTask: (id: string) => void,
-  updateTasks: Dispatch<SetStateAction<{ [key: string]: string; }[]>>,
+  updateTasks: Dispatch<SetStateAction<TaskData[]>>,
 }
 
-export default function TaskCard({ id, name, description, deadline, priority, status, dateCompletion, deleteTask, editTask, updateTasks }: TaskCardProps) {
+export default function TaskCard({
+  id, name, description,
+  deadline, priority, status,
+  dateCompletion, deleteTask,
+  editTask, updateTasks
+}: TaskCardProps) {
   const classes = useStyles();
 
   const onDeleteTask = () => {
@@ -42,16 +46,33 @@ export default function TaskCard({ id, name, description, deadline, priority, st
   };
 
   const updateTaskStatus = (e: React.ChangeEvent<{ value: unknown }>) => {
-    const selectedStatus = e.target.value as string;
+    const selectedStatus = e.target.value as Statuses;
     const successCallback = () => updateTasks(prev => {
       const foundTask = prev.find(task => task.id === id);
-      const foundTaskIndex = prev.findIndex(task => task.id === id);
 
-      prev.splice(foundTaskIndex, 1, { ...foundTask, status: selectedStatus, dateCompletion: getDateCompletion(selectedStatus) });
+      if (foundTask) {
+        const foundTaskIndex = prev.findIndex(task => task.id === id);
 
-      return [...prev];
+        prev.splice(foundTaskIndex, 1, {
+          ...foundTask,
+          status: selectedStatus,
+          dateCompletion: getDateCompletion(selectedStatus),
+        });
+  
+        return [...prev];
+      }
+
+      return prev;
     });
-    updateTaskById(id, { name, deadline, priority, status: selectedStatus, dateCompletion: getDateCompletion(selectedStatus) }, successCallback);
+
+    updateTaskById(id, {
+      name,
+      deadline,
+      description,
+      priority,
+      status: selectedStatus,
+      dateCompletion: getDateCompletion(selectedStatus),
+    }, successCallback);
   };
 
   const isDeadlineBroken = deadline && checkDeadlineBroken(deadline, Date.now());
@@ -59,7 +80,7 @@ export default function TaskCard({ id, name, description, deadline, priority, st
   return (
     <div
       className={`
-        ${isDeadlineBroken ? styles.taskCardContainerError : styles.taskCardContainer}
+        ${isDeadlineBroken ? classes.taskCardContainerError : ''}
         ${classes.taskCard}
       `}
     >

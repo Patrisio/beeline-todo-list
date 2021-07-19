@@ -1,38 +1,41 @@
-import React, { memo, Dispatch, SetStateAction } from 'react';
+import React, { Dispatch, SetStateAction } from 'react';
 
 import TaskCard from '../TaskCard/TaskCard';
+import Spinner from '../Spinner/Spinner';
 
 import { TaskData } from '../../types';
 
 interface TaskListProps {
   tasks: TaskData[],
+  isLoading: boolean,
   deleteTask: (id: string) => void,
   editTask: (id: string) => void,
-  updateTasks: Dispatch<SetStateAction<{ [key: string]: string; }[]>>,
+  updateTasks: Dispatch<SetStateAction<TaskData[]>>,
 }
 
-function TasksList({ tasks, ...taskActions }: TaskListProps) {
+export default function TasksList({ tasks, isLoading, ...taskActions }: TaskListProps) {
   return (
     <div>
       {
-        tasks.map(({ id, name, description, priority, deadline, status, dateCompletion }: TaskData, idx: number) => {
-          return (
-            <TaskCard
-              key={idx}
-              id={id}
-              name={name}
-              description={description}
-              priority={priority}
-              deadline={deadline}
-              status={status}
-              dateCompletion={dateCompletion}
-              { ...taskActions }
-            />
-          );
-        })
+        isLoading ?
+        <Spinner /> :
+        tasks.map(({
+          id, name, description, priority,
+          deadline, status, dateCompletion
+        }: TaskData) => (
+          <TaskCard
+            key={id}
+            id={id}
+            name={name}
+            description={description}
+            priority={priority}
+            deadline={deadline}
+            status={status}
+            dateCompletion={dateCompletion}
+            { ...taskActions }
+          />
+        ))
       }
     </div>
   );
 }
-
-export default memo(TasksList);

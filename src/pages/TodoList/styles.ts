@@ -6,6 +6,7 @@ export const useStyles = makeStyles((theme: Theme) =>
       border: '2px solid #3f51b5',
       width: '542px',
       marginTop: '20px',
+      color: '#3f51b5',
     },
     modalContainer: {
       width: '500px',

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -12,14 +12,10 @@ import DatePicker from '../../components/DatePicker/DatePicker';
 import TasksList from '../../components/TasksList/TasksList';
 import RadioButtonGroup from '../../components/RadioButtonGroup/RadioButtonGroup';
 
-import { priorities, filters } from '../../lib/utils/constants';
+import { priorities, filters } from '../../lib/constants';
 import { useStyles } from './styles';
 import { addTask, removeTask, getTasks, updateTaskById, getTasksByFilter } from '../../database/api';
 import { TaskData } from '../../types';
-
-interface FormattedTask {
-  [key: string]: string,
-}
 
 interface FormField {
   hasError: boolean,
@@ -72,7 +68,7 @@ export default function TodoList() {
   };
 
   const [newTaskData, updateNewTaskData] = useState<NewTask>(defaultNewTask);
-  const [tasks, updateTasks] = useState<{[key: string]: string}[]>([]);
+  const [tasks, updateTasks] = useState<TaskData[]>([]);
   const [isOpenModal, setOpenModal] = useState<boolean>(false);
   const [hasDeadline, toggleDeadline] = useState<boolean>(true);
   const [modalData, setModalData] = useState<ModalData>(defaultModalData);
@@ -87,17 +83,17 @@ export default function TodoList() {
         return selectedFilter === newTaskData.priority || selectedFilter === 'all' ?
           [...prev, { id: taskId, ...newTaskData }] : prev;
       });
-      toggleLoading(prev => !prev);
+      toggleLoading(false);
     };
 
-    toggleLoading(prev => !prev);
+    toggleLoading(true);
     const hasErrors = validateForm(newTaskData, hasDeadline);
 
     if (hasErrors) {
-      toggleLoading(prev => !prev);
+      toggleLoading(false);
       return;
     }
-    console.log(newTaskData, 'NEW__');
+
     const taskData = extractTaskData(newTaskData);
     addTask(taskData, afterTaskAddedSuccessfullyCallback);
   };
@@ -189,8 +185,15 @@ export default function TodoList() {
     return hasErrors;
   };
 
-  const extractTaskData = (taskData: NewTask): FormattedTask => {
-    let formattedTaskData: FormattedTask = {};
+  const extractTaskData = (taskData: NewTask): TaskData => {
+    let formattedTaskData: TaskData = {
+      name: '',
+      description: '',
+      priority: 'usual',
+      deadline: '',
+      status: 'inProgress',
+      dateCompletion: '',
+    };
 
     for (let taskFieldName in taskData) {
       formattedTaskData[taskFieldName] = taskData[taskFieldName].value;
@@ -201,18 +204,24 @@ export default function TodoList() {
 
   const getTaskBySelectedFilter = (selectedFilterValue: string) => {
     setSelectedFilter(selectedFilterValue);
-
+    toggleLoading(true);
     selectedFilterValue === 'all' ? 
-    getTasks((tasks: any) => updateTasks(tasks)) :
-    getTasksByFilter(selectedFilterValue, (tasks) => updateTasks(tasks));
+    getTasks((tasks: any) => {
+      updateTasks(tasks);
+      toggleLoading(false);
+    }) :
+    getTasksByFilter(selectedFilterValue, (tasks) => {
+      updateTasks(tasks);
+      toggleLoading(false);
+    });
   };
 
-  const deleteTask = useCallback((taskId: string) => {
+  const deleteTask = (taskId: string) => {
     updateTasks(prev => prev.filter(task => task.id !== taskId));
     removeTask(taskId);
-  }, [tasks]);
+  };
 
-  const editTask = useCallback((id: string) => {
+  const editTask = (id: string) => {
     const taskData = tasks.find(task => task.id === id);
 
     if (taskData) {
@@ -220,7 +229,13 @@ export default function TodoList() {
       const afterTaskEditedSuccessfullyCallback = (newTaskData: TaskData) => {
         updateTasks(prev => {
           const foundTaskIndex = tasks.findIndex(task => task.id === id);
-          prev.splice(foundTaskIndex, 1, { id, ...newTaskData });
+
+          if (priority === newTaskData.priority || (priority !== newTaskData.priority && selectedFilter === 'all')) {
+            prev.splice(foundTaskIndex, 1, { id, ...newTaskData });
+          } else {
+            prev.splice(foundTaskIndex, 1);
+          }
+
           return [...prev];
         });
         closeModal();
@@ -256,10 +271,11 @@ export default function TodoList() {
       openModal({
         title: 'Редактировать задачу',
         actionTitle: 'Изменить',
-        action: (newTaskData: NewTask) => updateTaskById(id, extractTaskData(newTaskData), afterTaskEditedSuccessfullyCallback),
+        action: (newTaskData: NewTask) =>
+          updateTaskById(id, extractTaskData(newTaskData), afterTaskEditedSuccessfullyCallback),
       });
     }
-  }, [tasks]);
+  };
 
   const taskActions = {
     deleteTask,
@@ -277,9 +293,7 @@ export default function TodoList() {
       </Button>
 
       <Button
-        onClick={() => {
-          modalData.action(newTaskData, hasDeadline);
-        }}
+        onClick={() => modalData.action(newTaskData, hasDeadline)}
         color='primary'
       >
         { modalData.actionTitle }
@@ -288,8 +302,10 @@ export default function TodoList() {
   );
 
   useEffect(() => {
-    getTasks((tasks: any) => {
+    toggleLoading(true);
+    getTasks((tasks: TaskData[]) => {
       updateTasks(tasks);
+      toggleLoading(false);
     });
   }, []);
 
@@ -299,6 +315,7 @@ export default function TodoList() {
         items={filters}
         onChange={getTaskBySelectedFilter}
       />
+
       <div className={classes.makeTaskButtonContainer}>
         <Button
           onClick={() => openModal(defaultModalData)}
@@ -310,6 +327,7 @@ export default function TodoList() {
 
       <TasksList
         tasks={tasks}
+        isLoading={isLoading}
         { ...taskActions }      
       />
 

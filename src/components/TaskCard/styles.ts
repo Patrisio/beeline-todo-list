@@ -11,6 +11,9 @@ export const useStyles = makeStyles((theme: Theme) =>
       borderRadius: '5px',
       boxShadow: 'rgb(46 41 51 / 8%) 0px 1px 2px, rgb(71 63 79 / 8%) 0px 2px 4px'
     },
+    taskCardContainerError: {
+      background: 'rgba(255,0,0,.1) !important',
+    },
     deadlineTitle: {
       position: 'absolute',
       right: '10px',
